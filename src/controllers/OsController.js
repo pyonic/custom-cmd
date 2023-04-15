@@ -1,6 +1,16 @@
 import os from 'node:os';
 
 class OsController {
+
+    constructor () {
+        this.commands = {
+            'os --EOL': 'getEol',
+            'os --cpus': 'getCpus',
+            'os --homedir': 'getHomeDir',
+            'os --username': 'getUsername',
+            'os --architecture': 'getArch'
+        }
+    }
     
     getEol() {
         const EOL = os.EOL;
@@ -8,8 +18,16 @@ class OsController {
     }
 
     getCpus () {
-        const cpus = os.cpus().length;
-        console.log(`Host machine CPUs amount: ${cpus}`);
+        const cpus = os.cpus();
+        const cpuData = [];
+        
+        
+        cpus.forEach((cp) => {
+            cpuData.push({ model: cp.model, speed: `${(cp.speed / 1000).toFixed(2)} GHz`})
+        })
+        
+        console.table(cpuData)
+        console.log(`[TOTAL CPUS] => ${cpus.length}`);
     }
 
     getHomeDir() {
@@ -27,14 +45,12 @@ class OsController {
         console.log(`CPU architecture: ${arch}`);
     }
 
-    getCommands () {
-        return {
-            'os --EOL': 'getEol',
-            'os --cpus': 'getCpus',
-            'os --homedir': 'getHomeDir',
-            'os --username': 'getUsername',
-            'os --architecture': 'getArch'
-        }
+    processCommand (command) {
+        return this[this.commands[command]]()
+    }
+
+    canProcess (command) {
+        return this.commands.hasOwnProperty(command);
     }
 }
 

@@ -3,13 +3,24 @@ import fs from 'node:fs';
 import os from 'node:os';
 import { EMPTY_STRING } from '../constants.js';
 
-class FileController {
+class DirectoryController {
     constructor () {
         this.current_dir = os.homedir();
         this.fileTypes = {
             1: 'file',
             2: 'directory'
         }
+        this.commands = [
+            { startWith: 'cat ', requiredParams: 1, fn: 'cat' },
+            { startWith: 'add ', requiredParams: 1, fn: 'add' },
+            { startWith:  'rn ', requiredParams: 2, fn: 'rename' },
+            { startWith:  'cp ', requiredParams: 2, fn: 'copy' },
+            { startWith:  'cd ', requiredParams: 1, fn: 'cd' },
+            { startWith:  'mv ', requiredParams: 2, fn: 'move' },
+            { startWith:  'rm ', requiredParams: 1, fn: 'remove' },
+            { startWith:  'up',  requiredParams: 0, fn: 'up' },
+            { startWith:  'ls',  requiredParams: 0, fn: 'ls' },
+        ]
     }
 
     async up() {
@@ -31,13 +42,15 @@ class FileController {
         const filesData = await new Promise((resolve, reject) => {
             fs.readdir(this.current_dir, { withFileTypes: true }, async (err, files) => {
                 const filesData = [];
-                for(let i = 0; i<files.length; i++) {
-                    const file = files[i];
-                    const fullPath = path.join(this.current_dir, file.name);
-                    const fileName = path.basename(fullPath);
-                    const status = await fs.promises.stat(fullPath)
-                    const fileType = status.isDirectory() ? 'Directory' : 'File';
-                    filesData.push({ name: fileName, type: fileType })
+                if (files) {
+                    for(let i = 0; i<files.length; i++) {
+                        const file = files[i];
+                        const fullPath = path.join(this.current_dir, file.name);
+                        const fileName = path.basename(fullPath);
+                        const status = await fs.promises.stat(fullPath)
+                        const fileType = status.isDirectory() ? 'Directory' : 'File';
+                        filesData.push({ name: fileName, type: fileType })
+                    }
                 }
                 resolve(filesData)
             })
@@ -57,7 +70,7 @@ class FileController {
         return new Promise((resolve, reject) => {
             fs.access(filePath, fs.constants.R_OK, (err) => {
                 if (err) {
-                    console.log(`[ERROR] Not exists`);
+                    console.log(`Operation failed, destination not exists!`);
                     resolve(false)
                 } else {
                     const readableStream = fs.createReadStream(filePath);
@@ -70,6 +83,10 @@ class FileController {
         })
     }
 
+    getCurrentDir () {
+        return this.current_dir;
+    }
+    
     async add (fileName) {
         const fullPath = path.join(this.current_dir, fileName);
         try {
@@ -93,8 +110,8 @@ class FileController {
         })
     }
 
-    async sourceExists(taget) {
-        const source = path.isAbsolute(taget) ? taget : path.join(this.current_dir, taget);
+    async sourceExists(target) {
+        const source = path.isAbsolute(target) ? target : path.join(this.current_dir, target);
         return new Promise((resolve, _reject) => {
             fs.access(source, fs.constants.R_OK, (err) => {
                 if (err) {
@@ -113,7 +130,8 @@ class FileController {
         const checkSources = await this.sourceExists(source);
         
         if (!checkSources) {
-            throw new Error('Error, sources not found');
+            console.log('Error, sources not found');
+            return;
         }
         
         return new Promise((resolve, reject) => {
@@ -156,34 +174,15 @@ class FileController {
         }
     }
 
-    async processFsCommand (command) {
-        const commands = [
-            { startWith: 'cat ', requiredParams: 1, fn: 'cat' },
-            { startWith: 'add ', requiredParams: 1, fn: 'add' },
-            { startWith:  'rn ', requiredParams: 2, fn: 'rename' },
-            { startWith:  'cp ', requiredParams: 2, fn: 'copy' },
-            { startWith:  'cd ', requiredParams: 1, fn: 'cd' },
-            { startWith:  'mv ', requiredParams: 2, fn: 'move' },
-            { startWith:  'rm ', requiredParams: 1, fn: 'remove' },
-            { startWith:  'up',  requiredParams: 0, fn: 'up' },
-            { startWith:  'ls',  requiredParams: 0, fn: 'ls' },
-        ]
+    async processCommand (command) {
+        const option = this.commands.find(opt => command.startsWith(opt.startWith));
+        const args = command.split(' ');
+        await this[option.fn](...args.slice(1, option.requiredParams + 1))
+    }
 
-        let commandMatched = false;
-
-        for(let i = 0; i < commands.length; i++) {
-            const cmd = commands[i];
-            if (command.startsWith(cmd.startWith)) {
-                commandMatched = true;
-
-                const option = commands.find(opt => command.startsWith(opt.startWith));
-                const args = command.split(' ');
-                const operation = await this[option.fn](...args.slice(1, option.requiredParams + 1))
-            }
-        }
-
-        return commandMatched;
+    canProcess (command) {
+        return this.commands.find(opt => command.startsWith(opt.startWith));
     }
 }
 
-export { FileController }
+export { DirectoryController }
