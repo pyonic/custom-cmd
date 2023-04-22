@@ -28,7 +28,7 @@ class CController {
                 try {
                     await this.controllers[i].processCommand(command);
                 } catch (err) {
-                    process.stdout.write(`Operation error, ${err.message}\n`);
+                    process.stdout.write(`Operation failed, ${err.message}\n`);
                 }
                 commandProceeded = true;
                 break;
@@ -36,7 +36,7 @@ class CController {
         }
 
         if (!commandProceeded && command.length > 0) {
-            process.stdout.write('Command not found\n');
+            process.stdout.write('Invalid input\n');
         }
 
         process.stdout.write(`${this.dirController.getCurrentDir()} ~ # `)

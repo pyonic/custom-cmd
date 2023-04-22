@@ -154,7 +154,7 @@ class DirectoryController {
         const checkSourceTarget = await this.sourceExists(targetDir);
 
         if (!checkSources) {
-            console.log('Error, sources not found');
+            console.log('Operation failed, sources not found');
             return;
         }
 

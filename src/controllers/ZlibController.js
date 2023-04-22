@@ -41,7 +41,7 @@ class ZipController {
             })
 
             bs.on('error', (err) => {
-                console.log('Operation error');
+                console.log('Operation failed');
                 resolve(false);
             })
         })
@@ -70,7 +70,7 @@ class ZipController {
             })
 
             bs.on('error', (err) => {
-                console.log('Operation error');
+                console.log('Operation failed');
                 resolve(false);
             })
         })

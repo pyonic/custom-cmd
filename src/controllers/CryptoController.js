@@ -16,7 +16,7 @@ class CryptoController {
         const exists = await this.dirController.sourceExists(targetFile);
         
         if (!exists) {
-            console.log('Operation error, file not exists');
+            console.log('Operation failed, file not exists');
             return;
         }
 
