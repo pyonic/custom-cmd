@@ -4,23 +4,29 @@ import fs from 'node:fs';
 
 class ZipController {
 
-    constructor (dirController) {
+    constructor(dirController) {
         this.dirController = dirController;
         this.commands = [
             { startWith: 'compress ', requiredParams: 2, fn: 'compress' },
             { startWith: 'decompress ', requiredParams: 2, fn: 'decompress' }
         ]
     }
-    
-    async compress (source, target) {
+
+    async compress(source, target) {
         const sourceFile = path.isAbsolute(source) ? source : path.join(this.dirController.getCurrentDir(), source);
         const targetFile = path.isAbsolute(target) ? target : path.join(this.dirController.getCurrentDir(), target);
+        const targetFolder = path.dirname(targetFile);
 
         const exists = await this.dirController.sourceExists(sourceFile);
-        
+        const targetFolderExists = await this.dirController.sourceExists(targetFolder);
+
         if (!exists) {
             console.log('Operation failed, source file not exists!');
             return;
+        }
+
+        if (!targetFolderExists) {
+            await fs.promises.mkdir(targetFolder, { recursive: true });
         }
 
         return new Promise((resolve, reject) => {
@@ -41,12 +47,12 @@ class ZipController {
         })
     }
 
-    async decompress (source, target) {
+    async decompress(source, target) {
         const sourceFile = path.isAbsolute(source) ? source : path.join(this.dirController.getCurrentDir(), source);
         const targetFile = path.isAbsolute(target) ? target : path.join(this.dirController.getCurrentDir(), target);
 
         const exists = await this.dirController.sourceExists(sourceFile);
-        
+
         if (!exists) {
             console.log('Operation failed, source file not exists!');
             return;
@@ -70,7 +76,7 @@ class ZipController {
         })
     }
 
-    async processCommand (command) {
+    async processCommand(command) {
         const option = this.commands.find(opt => command.startsWith(opt.startWith));
         const args = command.split(' ');
         if (args.slice(1).length != option.requiredParams) {
@@ -80,7 +86,7 @@ class ZipController {
         await this[option.fn](...args.slice(1, option.requiredParams + 1))
     }
 
-    canProcess (command) {
+    canProcess(command) {
         return this.commands.find(opt => command.startsWith(opt.startWith));
     }
 }

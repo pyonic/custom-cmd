@@ -1,5 +1,7 @@
 ## Self estimated sroce 330 (100%)
 
+> :warning: **If you are using Windows machine**: To switch to another driver use double slashes, as cd `D:\\` not just `D: or D:\`
+
 # Scoring: File Manager
 
 ## Scopes completed (All scopes completed / No forfeits)
