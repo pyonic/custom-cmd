@@ -38,6 +38,10 @@ class CryptoController {
     async processCommand (command) {
         const option = this.commands.find(opt => command.startsWith(opt.startWith));
         const args = command.split(' ');
+        if (args.slice(1).length != option.requiredParams) {
+            process.stdout.write(`Incorrect arguments passed, required ${option.requiredParams} but given ${args.slice(1).length} \n`)
+            return;
+        }
         await this[option.fn](...args.slice(1, option.requiredParams + 1))
     }
 

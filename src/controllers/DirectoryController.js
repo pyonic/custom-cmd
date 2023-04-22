@@ -99,6 +99,22 @@ class DirectoryController {
     async rename(oldFile, newFile) {
         const source = path.isAbsolute(oldFile) ? oldFile : path.join(this.current_dir, oldFile);
         const target = path.isAbsolute(newFile) ? newFile : path.join(this.current_dir, newFile);
+
+        const targetDir = path.dirname(target);
+
+        const targetDirExist = await this.sourceExists(target);
+        const sourceDirExist = await this.sourceExists(source);
+
+        if (!sourceDirExist) {
+            process.stdout.write('Unable to rename, source not exists.\n')
+            return;
+        }
+
+        if (!targetDirExist) {
+            process.stdout.write('Unable to rename, target dir not exists.\n');
+            return;
+        }
+
         return new Promise((resolve, reject) => {
             fs.rename(source, target, (err) => {
                 if (err) {
@@ -126,12 +142,18 @@ class DirectoryController {
     async copy(oldFile, newFile) {
         const source = path.isAbsolute(oldFile) ? oldFile : path.join(this.current_dir, oldFile);
         const target = path.isAbsolute(newFile) ? newFile : path.join(this.current_dir, newFile);
+        const targetDir = path.dirname(target);
 
         const checkSources = await this.sourceExists(source);
+        const checkSourceTarget = await this.sourceExists(targetDir);
         
         if (!checkSources) {
             console.log('Error, sources not found');
             return;
+        }
+
+        if (!checkSourceTarget) {
+            await fs.promises.mkdir(targetDir, { recursive: true })
         }
         
         return new Promise((resolve, reject) => {
@@ -177,6 +199,10 @@ class DirectoryController {
     async processCommand (command) {
         const option = this.commands.find(opt => command.startsWith(opt.startWith));
         const args = command.split(' ');
+        if (args.slice(1).length != option.requiredParams) {
+            process.stdout.write(`Incorrect arguments passed, required ${option.requiredParams} but given ${args.slice(1).length} \n`)
+            return;
+        }
         await this[option.fn](...args.slice(1, option.requiredParams + 1))
     }
 

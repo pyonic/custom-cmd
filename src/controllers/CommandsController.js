@@ -21,11 +21,22 @@ class CController {
 
     async processCommand (command) {
 
+        let commandProceeded = false;
+
         for (let i = 0; i < this.controllers.length; i++) {
             if (this.controllers[i].canProcess(command)) {
-                await this.controllers[i].processCommand(command);
+                try {
+                    await this.controllers[i].processCommand(command);
+                } catch (err) {
+                    process.stdout.write('Operation error\n');
+                }
+                commandProceeded = true;
                 break;
             }
+        }
+
+        if (!commandProceeded) {
+            process.stdout.write('Command not found\n');
         }
 
         process.stdout.write(`${this.dirController.getCurrentDir()} ~ # `)
