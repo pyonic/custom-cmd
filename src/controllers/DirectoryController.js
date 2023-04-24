@@ -108,6 +108,11 @@ class DirectoryController {
 
         const targetDir = path.dirname(target);
 
+        if (await this.sourceExists(target) && source != target) {
+            process.stdout.write('Operation failed, file already exists!\n');
+            return;
+        }
+
         const targetDirExist = await this.sourceExists(targetDir);
         const sourceDirExist = await this.sourceExists(source);
 
