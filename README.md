@@ -2,6 +2,8 @@
 
 > :warning: **If you are using Windows machine**: To switch to another driver use double slashes, as cd `D:\\` not just `D: or D:\`
 
+> :warning: For copy and move please give also destination name, f.e cp temp.txt dir/temp.txt
+
 # Scoring: File Manager
 
 ## Scopes completed (All scopes completed / No forfeits)
